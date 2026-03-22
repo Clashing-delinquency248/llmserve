@@ -63,7 +63,7 @@ jobs:
             ${{ runner.os }}-cargo-target-
 
       - name: Run tests
-        run: cargo test --verbose -- --skip serve_and_rotate
+        run: cargo test --verbose
 
   fmt:
     name: Rustfmt

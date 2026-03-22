@@ -20,7 +20,10 @@ impl Backend {
     }
 
     pub fn can_serve_gguf(&self) -> bool {
-        matches!(self, Backend::LlamaServer | Backend::Ollama | Backend::LmStudio)
+        matches!(
+            self,
+            Backend::LlamaServer | Backend::Ollama | Backend::LmStudio
+        )
     }
 
     pub fn can_serve_mlx(&self) -> bool {
@@ -38,11 +41,7 @@ pub struct DetectedBackend {
 
 impl DetectedBackend {
     pub fn status_label(&self) -> &'static str {
-        if self.available {
-            "ready"
-        } else {
-            "not found"
-        }
+        if self.available { "ready" } else { "not found" }
     }
 }
 

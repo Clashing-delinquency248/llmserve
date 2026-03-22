@@ -71,11 +71,21 @@ pub fn discover_models(extra_dirs: &[PathBuf]) -> Vec<DiscoveredModel> {
 
     // LM Studio models
     let lmstudio_dir = home.join(".lmstudio").join("models");
-    scan_gguf_dir(&lmstudio_dir, ModelSource::LmStudio, &mut models, &mut seen_paths);
+    scan_gguf_dir(
+        &lmstudio_dir,
+        ModelSource::LmStudio,
+        &mut models,
+        &mut seen_paths,
+    );
 
     // llama.cpp cache
     let llamacpp_dir = home.join(".cache").join("llm-models");
-    scan_gguf_dir(&llamacpp_dir, ModelSource::LlamaCppCache, &mut models, &mut seen_paths);
+    scan_gguf_dir(
+        &llamacpp_dir,
+        ModelSource::LlamaCppCache,
+        &mut models,
+        &mut seen_paths,
+    );
 
     // HuggingFace cache — MLX models
     let hf_hub = std::env::var("HF_HOME")
@@ -182,11 +192,7 @@ fn scan_mlx_models(
             .into_iter()
             .flatten()
             .flatten()
-            .any(|e| {
-                e.path()
-                    .extension()
-                    .is_some_and(|ext| ext == "safetensors")
-            });
+            .any(|e| e.path().extension().is_some_and(|ext| ext == "safetensors"));
         if !has_safetensors {
             continue;
         }
@@ -200,11 +206,7 @@ fn scan_mlx_models(
             .into_iter()
             .flatten()
             .flatten()
-            .filter(|e| {
-                e.path()
-                    .extension()
-                    .is_some_and(|ext| ext == "safetensors")
-            })
+            .filter(|e| e.path().extension().is_some_and(|ext| ext == "safetensors"))
             .filter_map(|e| e.metadata().ok())
             .map(|m| m.len())
             .sum();
@@ -236,10 +238,7 @@ fn scan_mlx_models(
     }
 }
 
-pub fn add_ollama_models(
-    models: &mut Vec<DiscoveredModel>,
-    ollama_models: Vec<(String, u64)>,
-) {
+pub fn add_ollama_models(models: &mut Vec<DiscoveredModel>, ollama_models: Vec<(String, u64)>) {
     for (name, size) in ollama_models {
         models.push(DiscoveredModel {
             name: name.clone(),
@@ -299,7 +298,11 @@ fn parse_params(s: &str) -> Option<String> {
     // Match patterns like "27B", "3.5B", "35B-A3B", "4B"
     let upper = s.to_uppercase();
     // First try MoE pattern like "35B-A3B"
-    for window in upper.split(|c: char| c == '-' || c == '_').collect::<Vec<_>>().windows(2) {
+    for window in upper
+        .split(|c: char| c == '-' || c == '_')
+        .collect::<Vec<_>>()
+        .windows(2)
+    {
         if let [total, active] = window {
             if total.ends_with('B')
                 && active.starts_with('A')

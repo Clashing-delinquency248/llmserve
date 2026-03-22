@@ -10,10 +10,10 @@ run:
 	cargo run
 
 test:
-	cargo test -- --skip serve_and_rotate
-
-test-all:
 	cargo test
+
+test-local:
+	cargo test -- --include-ignored
 
 check:
 	cargo check --all-targets --all-features

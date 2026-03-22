@@ -2,9 +2,7 @@ use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{
-    Block, BorderType, Borders, Cell, Clear, Paragraph, Row, Table,
-};
+use ratatui::widgets::{Block, BorderType, Borders, Cell, Clear, Paragraph, Row, Table};
 
 use crate::app::{App, Focus, InputMode};
 use crate::theme::ThemeColors;
@@ -17,7 +15,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     let rows = Layout::vertical(vec![
         Constraint::Length(3), // header
-        Constraint::Min(5),   // main area
+        Constraint::Min(5),    // main area
         Constraint::Length(1), // status bar
     ])
     .split(frame.area());
@@ -145,10 +143,7 @@ fn draw_source_tree(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) 
             ),
             Span::styled(arrow, Style::default().fg(tc.muted)),
             Span::styled(icon, Style::default()),
-            Span::styled(
-                label_with_count,
-                label_style,
-            ),
+            Span::styled(label_with_count, label_style),
         ]));
 
         // Show models under expanded nodes (truncated to fit)
@@ -172,12 +167,10 @@ fn draw_source_tree(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) 
                 ]));
             }
             if node.model_indices.len() > show {
-                lines.push(Line::from(vec![
-                    Span::styled(
-                        format!("      +{} more", node.model_indices.len() - show),
-                        Style::default().fg(tc.muted),
-                    ),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    format!("      +{} more", node.model_indices.len() - show),
+                    Style::default().fg(tc.muted),
+                )]));
             }
         }
 
@@ -189,12 +182,10 @@ fn draw_source_tree(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) 
     // Add directory hint at bottom
     if lines.len() < max_lines {
         lines.push(Line::from(""));
-        lines.push(Line::from(vec![
-            Span::styled(
-                "  [a] Add directory",
-                Style::default().fg(tc.muted),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            "  [a] Add directory",
+            Style::default().fg(tc.muted),
+        )]));
     }
 
     frame.render_widget(Paragraph::new(lines).block(block), area);
@@ -238,15 +229,17 @@ fn draw_model_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColo
     let inner = block.inner(area);
     app.visible_rows = inner.height.saturating_sub(1) as usize;
 
-    let header_cells = ["#", "Model Name", "Size", "Quant", "Params", "Fmt", "Status"]
-        .iter()
-        .map(|h| {
-            Cell::from(*h).style(
-                Style::default()
-                    .fg(tc.accent)
-                    .add_modifier(Modifier::BOLD),
-            )
-        });
+    let header_cells = [
+        "#",
+        "Model Name",
+        "Size",
+        "Quant",
+        "Params",
+        "Fmt",
+        "Status",
+    ]
+    .iter()
+    .map(|h| Cell::from(*h).style(Style::default().fg(tc.accent).add_modifier(Modifier::BOLD)));
     let header = Row::new(header_cells).height(1);
 
     let rows: Vec<Row> = app
@@ -358,7 +351,12 @@ fn draw_server_cards(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors)
                 .style(Style::default().fg(tc.fg).add_modifier(Modifier::BOLD)),
         );
         lines.push(Line::from(vec![Span::styled(
-            format!("  {} :{} │ {}", s.backend.label(), s.port, s.uptime_display()),
+            format!(
+                "  {} :{} │ {}",
+                s.backend.label(),
+                s.port,
+                s.uptime_display()
+            ),
             Style::default().fg(tc.accent),
         )]));
         lines.push(Line::from(vec![Span::styled(
@@ -487,7 +485,9 @@ fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         InputMode::Normal if app.focus == Focus::Serve => {
             "w:wrap │ C:clear │ s:stop │ S:stop-all │ S+←→:resize │ 1:tree │ 3:logs │ Tab:next │ q:quit"
         }
-        _ => "Tab:next │ j/k:nav │ /:search │ Enter:serve │ s:stop │ 1:tree │ 3:logs │ S+←→:resize │ q:quit",
+        _ => {
+            "Tab:next │ j/k:nav │ /:search │ Enter:serve │ s:stop │ 1:tree │ 3:logs │ S+←→:resize │ q:quit"
+        }
     };
 
     let status_msg = app.status_message.as_deref().unwrap_or("");
@@ -501,16 +501,10 @@ fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(format!(" {help}"), Style::default().fg(tc.muted)),
-        Span::styled(
-            format!("  {status_msg}"),
-            Style::default().fg(tc.info),
-        ),
+        Span::styled(format!("  {status_msg}"), Style::default().fg(tc.info)),
     ]);
 
-    frame.render_widget(
-        Paragraph::new(line).style(Style::default().bg(tc.bg)),
-        area,
-    );
+    frame.render_widget(Paragraph::new(line).style(Style::default().bg(tc.bg)), area);
 }
 
 fn draw_backend_popup(frame: &mut Frame, app: &App, tc: &ThemeColors) {
@@ -574,10 +568,7 @@ fn draw_confirm_popup(frame: &mut Frame, app: &App, tc: &ThemeColors) {
         .border_style(Style::default().fg(tc.accent))
         .style(Style::default().bg(tc.bg));
 
-    let model_name = app
-        .selected_model()
-        .map(|m| m.name.as_str())
-        .unwrap_or("?");
+    let model_name = app.selected_model().map(|m| m.name.as_str()).unwrap_or("?");
 
     let backend = app.confirm_backend();
     let backend_label = backend.map(|b| b.backend.label()).unwrap_or("?");

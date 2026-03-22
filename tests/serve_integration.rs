@@ -1,11 +1,10 @@
 //! Integration tests for llmserve.
 //!
-//! These tests actually serve a model on each available backend, verify HTTP
-//! connectivity, then stop the server and rotate to the next backend.
+//! Tests marked `#[ignore]` require local models and backends — they are
+//! skipped in CI and can be run locally with:
+//!     cargo test -- --include-ignored
 //!
-//! The tests discover a real model on disk and skip gracefully if none is
-//! found or if a backend is unavailable.  They bind to ephemeral ports so
-//! they don't collide with anything running on the host.
+//! The remaining tests use synthetic data and run everywhere.
 
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
@@ -42,16 +41,14 @@ fn test_config(port: u16) -> Config {
     let mut config = Config::default();
     config.preferred_port = port;
     config.preferred_host = "127.0.0.1".into();
-    config.default_ctx_size = 512; // tiny context for fast loading
+    config.default_ctx_size = 512;
 
-    // Override all presets with the test port and tiny context
     for (_key, preset) in config.presets.iter_mut() {
         preset.ctx_size = Some(512);
         preset.port = Some(port);
         preset.host = Some("127.0.0.1".into());
     }
 
-    // llama-server specific: small batch, flash attn on
     if let Some(preset) = config.presets.get_mut("llama-server") {
         preset.batch_size = Some(256);
         preset.flash_attn = Some(true);
@@ -67,7 +64,6 @@ fn free_port() -> u16 {
 }
 
 /// Poll a URL until it returns 200 or the timeout expires.
-/// Returns Ok(()) on success, Err(reason) on timeout.
 fn wait_for_ready(url: &str, timeout: Duration) -> Result<(), String> {
     let agent = ureq::Agent::config_builder()
         .timeout_global(Some(Duration::from_millis(500)))
@@ -123,12 +119,13 @@ fn check_completion(port: u16) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Tests that require local models (skipped in CI)
 // ---------------------------------------------------------------------------
 
 /// Core rotation test: iterate through every detected backend, serve, verify,
 /// stop, and move on.
 #[test]
+#[ignore] // Requires local models and inference backends
 fn serve_and_rotate_backends() {
     let backends = detect_backends();
     let gguf_model = find_smallest_gguf();
@@ -143,20 +140,15 @@ fn serve_and_rotate_backends() {
 
     for detected in &backends {
         if !detected.available {
-            eprintln!(
-                "SKIP backend {}: not available",
-                detected.backend.label()
-            );
+            eprintln!("SKIP backend {}: not available", detected.backend.label());
             continue;
         }
 
-        // LM Studio manages its own server — we can't launch from here
         if detected.backend == Backend::LmStudio {
             eprintln!("SKIP backend LM Studio: externally managed");
             continue;
         }
 
-        // Pick the right model for the backend
         let model = match detected.backend {
             Backend::MlxLm => {
                 if let Some(ref m) = mlx_model {
@@ -170,18 +162,19 @@ fn serve_and_rotate_backends() {
                 if let Some(ref m) = gguf_model {
                     m.clone()
                 } else {
-                    eprintln!("SKIP backend {}: no GGUF models found", detected.backend.label());
+                    eprintln!(
+                        "SKIP backend {}: no GGUF models found",
+                        detected.backend.label()
+                    );
                     continue;
                 }
             }
         };
 
-        // Ollama uses its own daemon port — we don't spawn a child for it in
-        // the same way, and `ollama run` is interactive.  Test its API instead.
         if detected.backend == Backend::Ollama {
             eprintln!("Testing Ollama API connectivity (daemon already running)...");
-            let ollama_url = std::env::var("OLLAMA_HOST")
-                .unwrap_or_else(|_| "http://localhost:11434".into());
+            let ollama_url =
+                std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://localhost:11434".into());
             let agent = ureq::Agent::config_builder()
                 .timeout_global(Some(Duration::from_secs(2)))
                 .build()
@@ -205,7 +198,6 @@ fn serve_and_rotate_backends() {
             detected.backend.label()
         );
 
-        // Launch
         let result = server::launch(&model, &detected.backend, &config);
         let mut handle = match result {
             Ok(h) => h,
@@ -215,21 +207,17 @@ fn serve_and_rotate_backends() {
             }
         };
 
-        // Wait for the server to become ready
         let health_url = match detected.backend {
             Backend::LlamaServer => format!("http://127.0.0.1:{port}/health"),
             Backend::MlxLm => format!("http://127.0.0.1:{port}/v1/models"),
             _ => format!("http://127.0.0.1:{port}/health"),
         };
 
-        // Give the server up to 120s to load the model (even small models
-        // can take a while on slower machines).
         let ready = wait_for_ready(&health_url, Duration::from_secs(120));
 
         if let Err(ref reason) = ready {
             eprintln!("  Server did not become ready: {reason}");
             server::stop(&mut handle);
-            // Check if it crashed
             if let Some(exit_msg) = server::check_exited(&mut handle) {
                 eprintln!("  Server exited: {exit_msg}");
             }
@@ -238,23 +226,19 @@ fn serve_and_rotate_backends() {
 
         eprintln!("  Server ready on port {port}");
 
-        // Verify /v1/models
         match check_openai_models(port) {
             Ok(()) => eprintln!("  /v1/models: OK"),
             Err(e) => eprintln!("  /v1/models: {e}"),
         }
 
-        // Verify a short completion
         match check_completion(port) {
             Ok(()) => eprintln!("  /v1/chat/completions: OK"),
             Err(e) => eprintln!("  /v1/chat/completions: {e}"),
         }
 
-        // Stop
         server::stop(&mut handle);
         eprintln!("  Stopped.");
 
-        // Give the port a moment to be released
         std::thread::sleep(Duration::from_millis(500));
 
         served_count += 1;
@@ -269,15 +253,16 @@ fn serve_and_rotate_backends() {
 
 /// Test that model discovery finds at least the models we know exist.
 #[test]
+#[ignore] // Requires local model files on disk
 fn discover_local_models() {
     let models = discover_models(&[]);
-    // We know at least the LM Studio models are there
-    assert!(!models.is_empty(), "Expected to discover at least one model");
+    assert!(
+        !models.is_empty(),
+        "Expected to discover at least one model"
+    );
 
-    // Verify models have sensible metadata
     for m in &models {
         assert!(!m.name.is_empty(), "Model name should not be empty");
-        // Ollama models have synthetic paths, others should be real files/dirs
         if m.source != ModelSource::Ollama {
             assert!(
                 m.path.exists(),
@@ -287,6 +272,59 @@ fn discover_local_models() {
         }
     }
 }
+
+/// Test that we can discover models from a custom extra directory.
+#[test]
+#[ignore] // Requires ~/.lmstudio/models on disk
+fn discover_models_from_extra_dir() {
+    let home = dirs::home_dir().unwrap();
+    let lmstudio_dir = home.join(".lmstudio").join("models");
+    if !lmstudio_dir.is_dir() {
+        eprintln!("SKIP: ~/.lmstudio/models not found");
+        return;
+    }
+
+    let baseline = discover_models(&[]);
+    let baseline_count = baseline.len();
+
+    let with_bogus = discover_models(&[PathBuf::from("/tmp/nonexistent_llmserve_test_dir")]);
+    assert_eq!(
+        with_bogus.len(),
+        baseline_count,
+        "Nonexistent extra dir should not change model count"
+    );
+}
+
+/// Test vision model mmproj detection by verifying models that have it.
+#[test]
+#[ignore] // Requires local models with mmproj files
+fn vision_models_detected() {
+    let models = discover_models(&[]);
+    let vision_models: Vec<_> = models.iter().filter(|m| m.mmproj.is_some()).collect();
+
+    if !vision_models.is_empty() {
+        for m in &vision_models {
+            let mmproj = m.mmproj.as_ref().unwrap();
+            assert!(
+                mmproj.exists(),
+                "mmproj path should exist: {}",
+                mmproj.display()
+            );
+            assert!(
+                mmproj
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .starts_with("mmproj"),
+                "mmproj filename should start with 'mmproj'"
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests that run everywhere (no local models needed)
+// ---------------------------------------------------------------------------
 
 /// Test backend detection returns consistent results.
 #[test]
@@ -298,7 +336,8 @@ fn backend_detection_is_consistent() {
     for (a, b) in first.iter().zip(second.iter()) {
         assert_eq!(a.backend, b.backend);
         assert_eq!(
-            a.available, b.available,
+            a.available,
+            b.available,
             "Backend {} availability changed between runs",
             a.backend.label()
         );
@@ -340,30 +379,6 @@ fn preset_extra_args_roundtrip() {
     assert_eq!(preset.extra_args, vec!["--mlock", "--cont-batching"]);
 }
 
-/// Test that we can discover models from a custom extra directory.
-#[test]
-fn discover_models_from_extra_dir() {
-    // Use the LM Studio models dir as an "extra" dir to verify the mechanism
-    let home = dirs::home_dir().unwrap();
-    let lmstudio_dir = home.join(".lmstudio").join("models");
-    if !lmstudio_dir.is_dir() {
-        eprintln!("SKIP: ~/.lmstudio/models not found");
-        return;
-    }
-
-    // Discover with empty extras — these will come from the default LM Studio scan
-    let baseline = discover_models(&[]);
-    let baseline_count = baseline.len();
-
-    // Now discover with a nonexistent extra dir — count should be the same
-    let with_bogus = discover_models(&[PathBuf::from("/tmp/nonexistent_llmserve_test_dir")]);
-    assert_eq!(
-        with_bogus.len(),
-        baseline_count,
-        "Nonexistent extra dir should not change model count"
-    );
-}
-
 /// Test that serving on LM Studio backend returns an informative error.
 #[test]
 fn lmstudio_serve_returns_error() {
@@ -387,29 +402,10 @@ fn lmstudio_serve_returns_error() {
     );
 }
 
-/// Test vision model mmproj detection by verifying models that have it.
+/// Test that model discovery doesn't crash on nonexistent directories.
 #[test]
-fn vision_models_detected() {
-    let models = discover_models(&[]);
-    let vision_models: Vec<_> = models.iter().filter(|m| m.mmproj.is_some()).collect();
-
-    // We know from the filesystem that several models have mmproj files
-    if !vision_models.is_empty() {
-        for m in &vision_models {
-            let mmproj = m.mmproj.as_ref().unwrap();
-            assert!(
-                mmproj.exists(),
-                "mmproj path should exist: {}",
-                mmproj.display()
-            );
-            assert!(
-                mmproj
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .starts_with("mmproj"),
-                "mmproj filename should start with 'mmproj'"
-            );
-        }
-    }
+fn discover_models_nonexistent_dir() {
+    let models = discover_models(&[PathBuf::from("/tmp/nonexistent_llmserve_test_dir_12345")]);
+    // Should not panic — may return 0 or more depending on default scan locations
+    let _ = models.len();
 }

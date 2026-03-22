@@ -1,6 +1,8 @@
 use crate::backends::{Backend, DetectedBackend, detect_backends, fetch_ollama_models};
 use crate::config::Config;
-use crate::models::{DiscoveredModel, ModelFormat, ModelSource, add_ollama_models, discover_models};
+use crate::models::{
+    DiscoveredModel, ModelFormat, ModelSource, add_ollama_models, discover_models,
+};
 use crate::server::{self, ServerHandle};
 use crate::theme::Theme;
 use std::collections::VecDeque;
@@ -228,8 +230,7 @@ impl App {
 
     pub fn next_available_port(&self) -> u16 {
         let base = self.config.preferred_port;
-        let used: std::collections::HashSet<u16> =
-            self.servers.iter().map(|s| s.port).collect();
+        let used: std::collections::HashSet<u16> = self.servers.iter().map(|s| s.port).collect();
         (base..).find(|p| !used.contains(p)).unwrap_or(base)
     }
 
@@ -571,9 +572,8 @@ impl App {
                 });
             }
             SortOrder::Size => {
-                self.filtered.sort_by(|&a, &b| {
-                    self.models[b].size_bytes.cmp(&self.models[a].size_bytes)
-                });
+                self.filtered
+                    .sort_by(|&a, &b| self.models[b].size_bytes.cmp(&self.models[a].size_bytes));
             }
             SortOrder::Source => {
                 self.filtered.sort_by(|&a, &b| {
@@ -853,8 +853,10 @@ impl App {
             while self.dead_logs.len() > 200 {
                 self.dead_logs.pop_front();
             }
-            self.status_message =
-                Some(format!("{} (port {}): {msg}", handle.model_name, handle.port));
+            self.status_message = Some(format!(
+                "{} (port {}): {msg}",
+                handle.model_name, handle.port
+            ));
         }
     }
 
@@ -870,10 +872,7 @@ impl App {
         // Then live server logs
         for s in &self.servers {
             if !s.log_lines.is_empty() {
-                lines.push((
-                    s.model_name.as_str(),
-                    "─── live ───",
-                ));
+                lines.push((s.model_name.as_str(), "─── live ───"));
                 for line in &s.log_lines {
                     lines.push((s.model_name.as_str(), line.as_str()));
                 }
@@ -925,10 +924,7 @@ impl App {
 }
 
 fn first_available(backends: &[DetectedBackend]) -> usize {
-    backends
-        .iter()
-        .position(|b| b.available)
-        .unwrap_or(0)
+    backends.iter().position(|b| b.available).unwrap_or(0)
 }
 
 /// Build the source tree from discovered models.

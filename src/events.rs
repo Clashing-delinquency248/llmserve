@@ -46,9 +46,7 @@ fn handle_normal(app: &mut App, key: KeyEvent) {
         KeyCode::Home | KeyCode::Char('g') => app.home(),
         KeyCode::End | KeyCode::Char('G') => app.end(),
         KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.half_page_up(),
-        KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-            app.half_page_down()
-        }
+        KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.half_page_down(),
 
         // Enter: in tree = select/filter source, in table = serve
         KeyCode::Enter => {
@@ -96,12 +94,8 @@ fn handle_normal(app: &mut App, key: KeyEvent) {
         KeyCode::Char('w') => app.toggle_log_wrap(),
 
         // Resize focused pane: Shift+Left / Shift+Right
-        KeyCode::Left if key.modifiers.contains(KeyModifiers::SHIFT) => {
-            app.shrink_focused_pane()
-        }
-        KeyCode::Right if key.modifiers.contains(KeyModifiers::SHIFT) => {
-            app.grow_focused_pane()
-        }
+        KeyCode::Left if key.modifiers.contains(KeyModifiers::SHIFT) => app.shrink_focused_pane(),
+        KeyCode::Right if key.modifiers.contains(KeyModifiers::SHIFT) => app.grow_focused_pane(),
 
         // Theme
         KeyCode::Char('t') => app.cycle_theme(),

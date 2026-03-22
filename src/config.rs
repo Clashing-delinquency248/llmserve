@@ -75,10 +75,7 @@ impl Default for Config {
             },
         );
 
-        presets.insert(
-            "lm-studio".into(),
-            BackendPreset::default(),
-        );
+        presets.insert("lm-studio".into(), BackendPreset::default());
 
         Self {
             extra_model_dirs: Vec::new(),
@@ -127,18 +124,12 @@ impl Config {
             host: preset
                 .and_then(|p| p.host.clone())
                 .unwrap_or_else(|| self.preferred_host.clone()),
-            port: preset
-                .and_then(|p| p.port)
-                .unwrap_or(self.preferred_port),
-            flash_attn: preset
-                .and_then(|p| p.flash_attn)
-                .unwrap_or(self.flash_attn),
+            port: preset.and_then(|p| p.port).unwrap_or(self.preferred_port),
+            flash_attn: preset.and_then(|p| p.flash_attn).unwrap_or(self.flash_attn),
             batch_size: preset.and_then(|p| p.batch_size),
             gpu_layers: preset.and_then(|p| p.gpu_layers),
             threads: preset.and_then(|p| p.threads),
-            extra_args: preset
-                .map(|p| p.extra_args.clone())
-                .unwrap_or_default(),
+            extra_args: preset.map(|p| p.extra_args.clone()).unwrap_or_default(),
         }
     }
 }

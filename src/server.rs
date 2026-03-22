@@ -69,7 +69,8 @@ impl ServerHandle {
                         if !last.is_empty() {
                             // Replace last line if it was a progress update
                             if let Some(back) = self.log_lines.back_mut() {
-                                if back.contains('\r') || back.contains('%') || back.contains("...") {
+                                if back.contains('\r') || back.contains('%') || back.contains("...")
+                                {
                                     *back = last.clone();
                                 } else {
                                     self.log_lines.push_back(last.clone());
@@ -162,9 +163,9 @@ pub fn launch(
         Backend::LlamaServer => launch_llama_server(model, config),
         Backend::MlxLm => launch_mlx(model, config),
         Backend::Ollama => launch_ollama(model, config),
-        Backend::LmStudio => Err(
-            "LM Studio manages its own server. Load the model in LM Studio directly.".into(),
-        ),
+        Backend::LmStudio => {
+            Err("LM Studio manages its own server. Load the model in LM Studio directly.".into())
+        }
     }
 }
 
