@@ -183,9 +183,10 @@ pub fn launch(
         Backend::LocalAi => launch_localai(model, config),
         // These are blocked by the can_serve_local check above,
         // but match exhaustively for safety.
-        Backend::Ollama | Backend::LmStudio | Backend::Vllm => {
-            Err(format!("{} cannot serve local model files", backend.label()))
-        }
+        Backend::Ollama | Backend::LmStudio | Backend::Vllm => Err(format!(
+            "{} cannot serve local model files",
+            backend.label()
+        )),
     }
 }
 

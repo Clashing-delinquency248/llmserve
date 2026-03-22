@@ -585,10 +585,7 @@ fn draw_confirm_popup(frame: &mut Frame, app: &App, tc: &ThemeColors) {
 
     let backend_status = if !compatible {
         let reason = incompatible_reason.unwrap_or("incompatible");
-        Span::styled(
-            format!(" [{reason}]"),
-            Style::default().fg(tc.error),
-        )
+        Span::styled(format!(" [{reason}]"), Style::default().fg(tc.error))
     } else if !backend_available {
         Span::styled(" [not found]", Style::default().fg(tc.error))
     } else if already_serving {

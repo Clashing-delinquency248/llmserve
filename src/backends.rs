@@ -27,7 +27,10 @@ impl Backend {
 
     /// Whether this backend can serve a local model file (GGUF path on disk).
     pub fn can_serve_local_gguf(&self) -> bool {
-        matches!(self, Backend::LlamaServer | Backend::KoboldCpp | Backend::LocalAi)
+        matches!(
+            self,
+            Backend::LlamaServer | Backend::KoboldCpp | Backend::LocalAi
+        )
     }
 
     /// Whether this backend can serve a local MLX model directory.
@@ -252,7 +255,13 @@ fn detect_localai() -> DetectedBackend {
 
     // Check if it's running via Docker (look for localai container)
     let docker_running = Command::new("docker")
-        .args(["ps", "--filter", "ancestor=localai/localai", "--format", "{{.ID}}"])
+        .args([
+            "ps",
+            "--filter",
+            "ancestor=localai/localai",
+            "--format",
+            "{{.ID}}",
+        ])
         .output()
         .ok()
         .is_some_and(|o| o.status.success() && !o.stdout.is_empty());
