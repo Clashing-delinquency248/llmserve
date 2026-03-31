@@ -53,6 +53,9 @@ pub struct DiscoveredModel {
 
 impl DiscoveredModel {
     pub fn size_display(&self) -> String {
+        if self.size_bytes == 0 {
+            return "-".into();
+        }
         let gb = self.size_bytes as f64 / 1_073_741_824.0;
         if gb >= 1.0 {
             format!("{:.1}G", gb)
@@ -279,16 +282,37 @@ fn scan_mlx_models(
     }
 }
 
+/// Normalize a model name for fuzzy dedup: lowercase, strip org prefixes,
+/// strip trailing `-gguf`, and unify separators.
+fn normalize_model_name(name: &str) -> String {
+    let lower = name.to_lowercase();
+    // Strip org prefix like "nvidia/" or "qwen/"
+    let base = lower.rsplit('/').next().unwrap_or(&lower);
+    // Strip common suffixes
+    let base = base
+        .strip_suffix("-gguf")
+        .or_else(|| base.strip_suffix(".gguf"))
+        .unwrap_or(base);
+    // Unify separators
+    base.replace('_', "-")
+}
+
 pub fn add_lmstudio_models(models: &mut Vec<DiscoveredModel>, api_models: Vec<(String, u64)>) {
-    let existing: std::collections::HashSet<String> = models
+    let existing_normalized: Vec<String> = models
         .iter()
         .filter(|m| m.source == ModelSource::LmStudio)
-        .map(|m| m.name.clone())
+        .map(|m| normalize_model_name(&m.name))
         .collect();
 
     for (id, size) in api_models {
-        // Skip if we already discovered this model from disk
-        if existing.contains(&id) {
+        // Skip if we already discovered this model from disk.
+        // Names differ between API (e.g. "nvidia/nemotron-3-nano-4b") and
+        // disk (e.g. "NVIDIA-Nemotron-3-Nano-4B-GGUF"), so normalize both.
+        let api_norm = normalize_model_name(&id);
+        if existing_normalized
+            .iter()
+            .any(|e| e.contains(&api_norm) || api_norm.contains(e.as_str()))
+        {
             continue;
         }
         models.push(DiscoveredModel {
