@@ -24,6 +24,8 @@ pub enum ModelSource {
     LlamaCppCache,
     HfCache,
     Ollama,
+    Lemonade,
+    FastFlowLm,
     ExtraDir,
 }
 
@@ -34,6 +36,8 @@ impl fmt::Display for ModelSource {
             ModelSource::LlamaCppCache => write!(f, "llama.cpp"),
             ModelSource::HfCache => write!(f, "HF Cache"),
             ModelSource::Ollama => write!(f, "Ollama"),
+            ModelSource::Lemonade => write!(f, "Lemonade"),
+            ModelSource::FastFlowLm => write!(f, "FastFlowLM"),
             ModelSource::ExtraDir => write!(f, "Custom"),
         }
     }
@@ -329,6 +333,38 @@ pub fn add_lmstudio_models(models: &mut Vec<DiscoveredModel>, api_models: Vec<(S
     models.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 }
 
+pub fn add_lemonade_models(models: &mut Vec<DiscoveredModel>, api_models: Vec<(String, u64)>) {
+    for (id, size) in api_models {
+        models.push(DiscoveredModel {
+            name: id.clone(),
+            path: PathBuf::from(format!("lemonade:{id}")),
+            mmproj: None,
+            format: ModelFormat::Gguf,
+            size_bytes: size,
+            quant: parse_quant(&id),
+            param_hint: parse_params(&id),
+            source: ModelSource::Lemonade,
+        });
+    }
+    models.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+}
+
+pub fn add_fastflowlm_models(models: &mut Vec<DiscoveredModel>, api_models: Vec<(String, u64)>) {
+    for (id, size) in api_models {
+        models.push(DiscoveredModel {
+            name: id.clone(),
+            path: PathBuf::from(format!("fastflowlm:{id}")),
+            mmproj: None,
+            format: ModelFormat::Gguf,
+            size_bytes: size,
+            quant: parse_quant(&id),
+            param_hint: parse_params(&id),
+            source: ModelSource::FastFlowLm,
+        });
+    }
+    models.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+}
+
 pub fn add_ollama_models(models: &mut Vec<DiscoveredModel>, ollama_models: Vec<(String, u64)>) {
     for (name, size) in ollama_models {
         models.push(DiscoveredModel {
@@ -522,6 +558,8 @@ mod tests {
         assert_eq!(ModelSource::LlamaCppCache.to_string(), "llama.cpp");
         assert_eq!(ModelSource::HfCache.to_string(), "HF Cache");
         assert_eq!(ModelSource::Ollama.to_string(), "Ollama");
+        assert_eq!(ModelSource::Lemonade.to_string(), "Lemonade");
+        assert_eq!(ModelSource::FastFlowLm.to_string(), "FastFlowLM");
         assert_eq!(ModelSource::ExtraDir.to_string(), "Custom");
     }
 

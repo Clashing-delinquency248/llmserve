@@ -1,10 +1,11 @@
 use crate::backends::{
-    Backend, DetectedBackend, detect_backends, fetch_lmstudio_models, fetch_ollama_models,
+    Backend, DetectedBackend, detect_backends, fetch_fastflowlm_models, fetch_lemonade_models,
+    fetch_lmstudio_models, fetch_ollama_models,
 };
 use crate::config::Config;
 use crate::models::{
-    DiscoveredModel, ModelFormat, ModelSource, add_lmstudio_models, add_ollama_models,
-    discover_models,
+    DiscoveredModel, ModelFormat, ModelSource, add_fastflowlm_models, add_lemonade_models,
+    add_lmstudio_models, add_ollama_models, discover_models,
 };
 use crate::server::{self, ServerHandle};
 use crate::theme::Theme;
@@ -172,6 +173,24 @@ impl App {
                 if let Some(ref url) = lmstudio.api_url {
                     let lmstudio_models = fetch_lmstudio_models(url);
                     add_lmstudio_models(&mut models, lmstudio_models);
+                }
+            }
+        }
+
+        if let Some(lemonade) = backends.iter().find(|b| b.backend == Backend::Lemonade) {
+            if lemonade.available {
+                if let Some(ref url) = lemonade.api_url {
+                    let lemonade_models = fetch_lemonade_models(url);
+                    add_lemonade_models(&mut models, lemonade_models);
+                }
+            }
+        }
+
+        if let Some(flm) = backends.iter().find(|b| b.backend == Backend::FastFlowLm) {
+            if flm.available {
+                if let Some(ref url) = flm.api_url {
+                    let flm_models = fetch_fastflowlm_models(url);
+                    add_fastflowlm_models(&mut models, flm_models);
                 }
             }
         }
@@ -972,6 +991,32 @@ impl App {
             }
         }
 
+        if let Some(lemonade) = self
+            .backends
+            .iter()
+            .find(|b| b.backend == Backend::Lemonade)
+        {
+            if lemonade.available {
+                if let Some(ref url) = lemonade.api_url {
+                    let lemonade_models = fetch_lemonade_models(url);
+                    add_lemonade_models(&mut self.models, lemonade_models);
+                }
+            }
+        }
+
+        if let Some(flm) = self
+            .backends
+            .iter()
+            .find(|b| b.backend == Backend::FastFlowLm)
+        {
+            if flm.available {
+                if let Some(ref url) = flm.api_url {
+                    let flm_models = fetch_fastflowlm_models(url);
+                    add_fastflowlm_models(&mut self.models, flm_models);
+                }
+            }
+        }
+
         self.tree_nodes = build_tree(&self.models, &self.config);
         self.apply_filters();
     }
@@ -1021,6 +1066,8 @@ fn build_tree(models: &[DiscoveredModel], config: &Config) -> Vec<TreeNode> {
             ),
         ),
         (ModelSource::Ollama, "Ollama", None),
+        (ModelSource::Lemonade, "Lemonade", None),
+        (ModelSource::FastFlowLm, "FastFlowLM", None),
     ];
 
     for (source, label, path) in builtins {
