@@ -53,7 +53,11 @@ impl Backend {
     /// Why this backend can't serve local files, if applicable.
     pub fn local_serve_reason(&self) -> Option<&'static str> {
         match self {
-            Backend::LlamaServer | Backend::KoboldCpp | Backend::MlxLm | Backend::LocalAi | Backend::Lemonade => None,
+            Backend::LlamaServer
+            | Backend::KoboldCpp
+            | Backend::MlxLm
+            | Backend::LocalAi
+            | Backend::Lemonade => None,
             Backend::Ollama => Some("Ollama uses its own model registry, not local files"),
             Backend::LmStudio => Some("LM Studio manages its own server"),
             Backend::Vllm => Some("vLLM expects HuggingFace model IDs, not local GGUF files"),
@@ -279,8 +283,7 @@ fn detect_lemonade() -> DetectedBackend {
     let binary = find_binary("lemonade");
 
     // Check for a running Lemonade server (default port 8000)
-    let url =
-        std::env::var("LEMONADE_HOST").unwrap_or_else(|_| "http://127.0.0.1:8000".into());
+    let url = std::env::var("LEMONADE_HOST").unwrap_or_else(|_| "http://127.0.0.1:8000".into());
     let agent = http_agent();
     let server_running = agent.get(&format!("{url}/api/v1/health")).call().is_ok();
 
