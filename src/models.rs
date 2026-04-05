@@ -176,14 +176,28 @@ fn scan_gguf_dir(
             let size_bytes = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
             let dir_name = parent.file_name().unwrap().to_string_lossy().to_string();
 
+            // If the file lives directly in the scan root (flat layout), the
+            // parent dir name is not model-specific — fall back to the file
+            // stem so each model gets a distinct, informative name.
+            let file_stem = path
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or_else(|| fname.to_string());
+            let name = if parent == dir {
+                file_stem.clone()
+            } else {
+                dir_name.clone()
+            };
+            let param_source = if parent == dir { &file_stem } else { &dir_name };
+
             models.push(DiscoveredModel {
-                name: dir_name.clone(),
+                name,
                 path: path.to_path_buf(),
                 mmproj,
                 format: ModelFormat::Gguf,
                 size_bytes,
                 quant: parse_quant(&fname),
-                param_hint: parse_params(&dir_name),
+                param_hint: parse_params(param_source),
                 source: source.clone(),
             });
         }
@@ -584,5 +598,48 @@ mod tests {
     fn discover_models_with_empty_extra_dirs() {
         let models = discover_models(&[PathBuf::from("/nonexistent/path/12345")]);
         let _ = models.len();
+    }
+
+    #[test]
+    fn scan_gguf_dir_flat_layout_uses_file_stem() {
+        // Simulate a flat user directory with multiple .gguf files (e.g. a
+        // bunch of symlinks) — each model should get a distinct name derived
+        // from the file stem, not the shared parent dir name.
+        let tmp = std::env::temp_dir().join(format!("llmserve_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        fs::create_dir_all(&tmp).unwrap();
+        fs::write(tmp.join("Qwen3-8B-Q8_0.gguf"), b"x").unwrap();
+        fs::write(tmp.join("qwen2.5-coder-3b-q8_0.gguf"), b"x").unwrap();
+
+        let mut models = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+        scan_gguf_dir(&tmp, ModelSource::ExtraDir, &mut models, &mut seen);
+
+        let names: std::collections::HashSet<String> =
+            models.iter().map(|m| m.name.clone()).collect();
+        assert!(names.contains("Qwen3-8B-Q8_0"), "got names: {names:?}");
+        assert!(names.contains("qwen2.5-coder-3b-q8_0"), "got names: {names:?}");
+        assert_eq!(names.len(), 2, "names should be distinct, got: {names:?}");
+
+        fs::remove_dir_all(&tmp).unwrap();
+    }
+
+    #[test]
+    fn scan_gguf_dir_nested_layout_uses_dir_name() {
+        // LM Studio / HF-style nested layout: parent dir name is the model name.
+        let tmp = std::env::temp_dir().join(format!("llmserve_test_nested_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        let subdir = tmp.join("Qwen3-8B-GGUF");
+        fs::create_dir_all(&subdir).unwrap();
+        fs::write(subdir.join("model-Q8_0.gguf"), b"x").unwrap();
+
+        let mut models = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+        scan_gguf_dir(&tmp, ModelSource::LmStudio, &mut models, &mut seen);
+
+        assert_eq!(models.len(), 1);
+        assert_eq!(models[0].name, "Qwen3-8B-GGUF");
+
+        fs::remove_dir_all(&tmp).unwrap();
     }
 }
