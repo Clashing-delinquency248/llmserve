@@ -26,6 +26,7 @@ pub enum ModelSource {
     Ollama,
     Lemonade,
     FastFlowLm,
+    LlmFit,
     ExtraDir,
 }
 
@@ -38,6 +39,7 @@ impl fmt::Display for ModelSource {
             ModelSource::Ollama => write!(f, "Ollama"),
             ModelSource::Lemonade => write!(f, "Lemonade"),
             ModelSource::FastFlowLm => write!(f, "FastFlowLM"),
+            ModelSource::LlmFit => write!(f, "llmfit"),
             ModelSource::ExtraDir => write!(f, "Custom"),
         }
     }
@@ -125,6 +127,15 @@ pub fn discover_models(extra_dirs: &[PathBuf]) -> Vec<DiscoveredModel> {
     scan_gguf_dir(
         &llamacpp_dir,
         ModelSource::LlamaCppCache,
+        &mut models,
+        &mut seen_paths,
+    );
+
+    // llmfit cache
+    let llmfit_dir = home.join(".cache").join("llmfit").join("models");
+    scan_gguf_dir(
+        &llmfit_dir,
+        ModelSource::LlmFit,
         &mut models,
         &mut seen_paths,
     );
@@ -574,6 +585,7 @@ mod tests {
         assert_eq!(ModelSource::Ollama.to_string(), "Ollama");
         assert_eq!(ModelSource::Lemonade.to_string(), "Lemonade");
         assert_eq!(ModelSource::FastFlowLm.to_string(), "FastFlowLM");
+        assert_eq!(ModelSource::LlmFit.to_string(), "llmfit");
         assert_eq!(ModelSource::ExtraDir.to_string(), "Custom");
     }
 
